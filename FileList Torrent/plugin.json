@@ -1,0 +1,12 @@
+{
+    "ID":"5C0BFEC0DF7011E695980800200C9A67",
+    "ActionKeyword":"fl",
+    "Name":"Filelist Torrent",
+    "Description":"Search Filelist torrents in Wox",
+    "Author":"Dragos Suteu",
+    "Version":"1.0.0",
+    "Language":"csharp",
+    "Website":"https://github.com/suteudragos/Filelist-Torrent",
+    "ExecuteFileName":"Filelist.Torrent.dll",
+    "IcoPath":"icon.png"
+}
