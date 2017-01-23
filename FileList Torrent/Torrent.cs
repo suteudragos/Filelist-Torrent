@@ -30,5 +30,10 @@ namespace FileList_Torrent {
         public string path {
             get; set;
         }
+
+        public string date {
+            get; set;
+        }
+
     }
 }

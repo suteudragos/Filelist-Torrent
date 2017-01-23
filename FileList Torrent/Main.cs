@@ -78,7 +78,8 @@ namespace FileList_Torrent {
                     size = torrentrow.QuerySelector( ".torrenttable:nth-child(7)" ).InnerText,
                     path = "http://filelist.ro/" + torrentrow.QuerySelector( ".torrenttable:nth-child(4) a" ).GetAttributeValue( "href", "" ),
                     seed = torrentrow.QuerySelector( ".torrenttable:nth-child(9)" ).InnerText,
-                    peer = torrentrow.QuerySelector( ".torrenttable:nth-child(10)" ).InnerText
+                    peer = torrentrow.QuerySelector( ".torrenttable:nth-child(10)" ).InnerText,
+                    date = torrentrow.QuerySelector( ".torrenttable:nth-child(6) nobr" ).FirstChild.InnerHtml.Replace( "<br>", " " )
                 } );
             }
 
@@ -134,7 +135,7 @@ namespace FileList_Torrent {
                 foreach (Torrent torrent in torrents) {
                     result.Add( new Result() {
                         Title = torrent.title,
-                        SubTitle = String.Format( "Seeders: {0} | Peers: {1} | Size: {2}", torrent.seed, torrent.peer, torrent.size ),
+                        SubTitle = String.Format( "Seeders: {0} |      Peers: {1} |     Size: {2} |       Date:{3}", torrent.seed.PadRight( 10 ), torrent.peer.PadRight( 10 ), torrent.size.PadRight( 15 ), torrent.date ),
                         IcoPath = "icon.png",
                         Action = e => {
                             Download( torrent.path, torrent.title );
