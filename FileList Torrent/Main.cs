@@ -74,12 +74,15 @@ namespace FileList_Torrent {
             var torrentrows = doc.QuerySelectorAll( ".torrentrow" );
             foreach (HtmlNode torrentrow in torrentrows) {
                 torrents.Add( new Torrent {
+                    icon = torrentrow.QuerySelector( ".torrenttable:nth-child(1) img").GetAttributeValue ("src","").Replace("styles/images/cat","icons"),
                     title = torrentrow.QuerySelector( ".torrenttable:nth-child(2) a" ).GetAttributeValue( "title", "" ),
                     size = torrentrow.QuerySelector( ".torrenttable:nth-child(7)" ).InnerText,
                     path = "http://filelist.ro/" + torrentrow.QuerySelector( ".torrenttable:nth-child(4) a" ).GetAttributeValue( "href", "" ),
                     seed = torrentrow.QuerySelector( ".torrenttable:nth-child(9)" ).InnerText,
                     peer = torrentrow.QuerySelector( ".torrenttable:nth-child(10)" ).InnerText,
-                    date = torrentrow.QuerySelector( ".torrenttable:nth-child(6) nobr" ).FirstChild.InnerHtml.Replace( "<br>", " " )
+                    date = torrentrow.QuerySelector( ".torrenttable:nth-child(6) nobr" ).FirstChild.InnerHtml.Replace( "<br>", " " ),
+                    uploader = torrentrow.QuerySelector(".torrenttable:nth-child(11) b").InnerHtml        
+
                 } );
             }
 
@@ -135,8 +138,9 @@ namespace FileList_Torrent {
                 foreach (Torrent torrent in torrents) {
                     result.Add( new Result() {
                         Title = torrent.title,
-                        SubTitle = String.Format( "Seeders: {0} |      Peers: {1} |     Size: {2} |       Date:{3}", torrent.seed.PadRight( 10 ), torrent.peer.PadRight( 10 ), torrent.size.PadRight( 15 ), torrent.date ),
-                        IcoPath = "icon.png",
+                        SubTitle = String.Format( "Seeders: {0} |      Peers: {1} |     Size: {2} |       Date&Time:{3} |          Uploaded by:{4}", 
+                        torrent.seed.PadRight( 10 ), torrent.peer.PadRight( 10 ), torrent.size.PadRight( 15 ), torrent.date.PadRight(20),torrent.uploader ),
+                        IcoPath = torrent.icon,
                         Action = e => {
                             Download( torrent.path, torrent.title );
                             string pathUser = Environment.GetFolderPath( Environment.SpecialFolder.UserProfile );

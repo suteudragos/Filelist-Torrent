@@ -35,5 +35,12 @@ namespace FileList_Torrent {
             get; set;
         }
 
+        public string uploader{
+            get; set;
+        }
+
+        public string icon{
+            get; set;
+        }
     }
 }
