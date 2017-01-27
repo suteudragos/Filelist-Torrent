@@ -21,6 +21,8 @@ namespace FileList_Torrent {
         HttpWebResponse response;
         StreamReader sReader;
         bool loggedIn;
+        static string pathUser = Environment.GetFolderPath( Environment.SpecialFolder.UserProfile );
+        string pathDownload = Path.Combine( pathUser, "Downloads\\" );
 
         public void login ( string username, string password ) {
 
@@ -105,9 +107,9 @@ namespace FileList_Torrent {
             response = (HttpWebResponse)wr.GetResponse();
             sReader = new StreamReader( response.GetResponseStream(), Encoding.Default );
             string strHTML = sReader.ReadToEnd();
-            System.IO.File.WriteAllText( @"C:\Users\rmxsh\Downloads\" + title + ".torrent", strHTML, Encoding.Default );
+            System.IO.File.WriteAllText( pathDownload + title + ".torrent", strHTML, Encoding.Default );
             //Console.Write( strHTML );
-            using (Stream output = File.OpenWrite( @"C:\Users\rmxsh\Downloads\" + title + ".torrent" ))
+            using (Stream output = File.OpenWrite( pathDownload + title + ".torrent" ))
                 ( sReader.BaseStream ).CopyTo( output );
 
         }
@@ -143,10 +145,8 @@ namespace FileList_Torrent {
                         IcoPath = torrent.icon,
                         Action = e => {
                             Download( torrent.path, torrent.title );
-                            string pathUser = Environment.GetFolderPath( Environment.SpecialFolder.UserProfile );
-                            string pathDownload = Path.Combine( pathUser, "Downloads\\" );
                             System.Diagnostics.Process.Start( pathDownload + torrent.title + ".torrent" );
-                            return false;
+                            return true;
                         }
                     } );
                 }
