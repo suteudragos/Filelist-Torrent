@@ -21,6 +21,7 @@ namespace FileList_Torrent {
         HttpWebResponse response;
         StreamReader sReader;
         bool loggedIn;
+        bool noInternet = false;
         static string pathUser = Environment.GetFolderPath( Environment.SpecialFolder.UserProfile );
         string pathDownload = Path.Combine( pathUser, "Downloads\\" );
 
@@ -46,7 +47,7 @@ namespace FileList_Torrent {
 
             sReader = new StreamReader( response.GetResponseStream() );
 
-            if (response.ResponseUri.AbsolutePath.Contains( "my.php" )) {
+            if ( response.ResponseUri.AbsolutePath.Contains( "my.php" ) ) {
                 loggedIn = true;
             } else {
                 loggedIn = false;
@@ -74,16 +75,16 @@ namespace FileList_Torrent {
 
             List<Torrent> torrents = new List<Torrent>();
             var torrentrows = doc.QuerySelectorAll( ".torrentrow" );
-            foreach (HtmlNode torrentrow in torrentrows) {
+            foreach ( HtmlNode torrentrow in torrentrows ) {
                 torrents.Add( new Torrent {
-                    icon = torrentrow.QuerySelector( ".torrenttable:nth-child(1) img").GetAttributeValue ("src","").Replace("styles/images/cat","icons"),
+                    icon = torrentrow.QuerySelector( ".torrenttable:nth-child(1) img" ).GetAttributeValue( "src", "" ).Replace( "styles/images/cat", "icons" ),
                     title = torrentrow.QuerySelector( ".torrenttable:nth-child(2) a" ).GetAttributeValue( "title", "" ),
                     size = torrentrow.QuerySelector( ".torrenttable:nth-child(7)" ).InnerText,
                     path = "http://filelist.ro/" + torrentrow.QuerySelector( ".torrenttable:nth-child(4) a" ).GetAttributeValue( "href", "" ),
                     seed = torrentrow.QuerySelector( ".torrenttable:nth-child(9)" ).InnerText,
                     peer = torrentrow.QuerySelector( ".torrenttable:nth-child(10)" ).InnerText,
                     date = torrentrow.QuerySelector( ".torrenttable:nth-child(6) nobr" ).FirstChild.InnerHtml.Replace( "<br>", " " ),
-                    uploader = torrentrow.QuerySelector(".torrenttable:nth-child(11) b").InnerHtml        
+                    uploader = torrentrow.QuerySelector( ".torrenttable:nth-child(11) b" ).InnerHtml
 
                 } );
             }
@@ -109,7 +110,7 @@ namespace FileList_Torrent {
             string strHTML = sReader.ReadToEnd();
             System.IO.File.WriteAllText( pathDownload + title + ".torrent", strHTML, Encoding.Default );
             //Console.Write( strHTML );
-            using (Stream output = File.OpenWrite( pathDownload + title + ".torrent" ))
+            using ( Stream output = File.OpenWrite( pathDownload + title + ".torrent" ) )
                 ( sReader.BaseStream ).CopyTo( output );
 
         }
@@ -128,39 +129,52 @@ namespace FileList_Torrent {
             XmlNode username = doc.DocumentElement.SelectSingleNode( "/login/username" );
             XmlNode password = doc.DocumentElement.SelectSingleNode( "/login/password" );
 
-            login( username.InnerText, password.InnerText );
+            try {
+                login( username.InnerText, password.InnerText );
+            } catch ( WebException e ) {
+                noInternet = true;
+            }
         }
 
 
         public List<Result> Query ( Query query ) {
             List<Result> result = new List<Result>();
-            if (loggedIn) {
-                List<Torrent> torrents = TorrentSearch( query.Search );
-                        
-                foreach (Torrent torrent in torrents) {
+            if ( !noInternet ) {
+
+                if ( loggedIn ) {
+                    List<Torrent> torrents = TorrentSearch( query.Search );
+
+                    foreach ( Torrent torrent in torrents ) {
+                        result.Add( new Result() {
+                            Title = torrent.title,
+                            SubTitle = String.Format( "Seeders: {0} |      Peers: {1} |     Size: {2} |       Date&Time:{3} |          Uploaded by:{4}",
+                            torrent.seed.PadRight( 10 ), torrent.peer.PadRight( 10 ), torrent.size.PadRight( 15 ), torrent.date.PadRight( 20 ), torrent.uploader ),
+                            IcoPath = torrent.icon,
+                            Action = e => {
+                                Download( torrent.path, torrent.title );
+                                System.Diagnostics.Process.Start( pathDownload + torrent.title + ".torrent" );
+                                return true;
+                            }
+                        } );
+                    }
+                } else {
                     result.Add( new Result() {
-                        Title = torrent.title,
-                        SubTitle = String.Format( "Seeders: {0} |      Peers: {1} |     Size: {2} |       Date&Time:{3} |          Uploaded by:{4}", 
-                        torrent.seed.PadRight( 10 ), torrent.peer.PadRight( 10 ), torrent.size.PadRight( 15 ), torrent.date.PadRight(20),torrent.uploader ),
-                        IcoPath = torrent.icon,
+                        Title = "Incorrect Username or Password",
+                        SubTitle = "Click to edit",
+                        IcoPath = "icon.png",
                         Action = e => {
-                            Download( torrent.path, torrent.title );
-                            System.Diagnostics.Process.Start( pathDownload + torrent.title + ".torrent" );
+                            string assemblyFolder = Path.GetDirectoryName( Assembly.GetExecutingAssembly().Location );
+                            string xmlFileName = Path.Combine( assemblyFolder, "login.xml" );
+                            Process.Start( xmlFileName );
                             return true;
                         }
                     } );
                 }
             } else {
                 result.Add( new Result() {
-                    Title = "Incorrect Username or Password",
-                    SubTitle = "Click to edit",
+                    Title = "No Internet Access",
+                    SubTitle = "Reconnect and restart Wox, for this plugin to work!",
                     IcoPath = "icon.png",
-                    Action = e => {
-                        string assemblyFolder = Path.GetDirectoryName( Assembly.GetExecutingAssembly().Location );
-                        string xmlFileName = Path.Combine( assemblyFolder, "login.xml" );
-                        Process.Start( xmlFileName );
-                        return true;
-                    }
                 } );
             }
 
